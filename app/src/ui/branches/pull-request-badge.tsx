@@ -2,7 +2,7 @@ import * as React from 'react'
 import { CIStatus } from './ci-status'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
-import { ICombinedRefCheck } from '../../lib/ci-checks/ci-checks'
+import { ICombinedRefCheck, isSuccess } from '../../lib/ci-checks/ci-checks'
 import { getPullRequestCommitRef } from '../../models/pull-request'
 import { Button } from '../lib/button'
 
@@ -31,6 +31,7 @@ interface IPullRequestBadgeProps {
 interface IPullRequestBadgeState {
   /** Whether or not the CI status is showing a status */
   readonly isStatusShowing: boolean
+  readonly check: ICombinedRefCheck | null
 }
 
 /** The pull request info badge. */
@@ -45,6 +46,7 @@ export class PullRequestBadge extends React.Component<
     super(props)
     this.state = {
       isStatusShowing: false,
+      check: null,
     }
   }
 
@@ -76,7 +78,7 @@ export class PullRequestBadge extends React.Component<
   }
 
   private onCheckChange = (check: ICombinedRefCheck | null) => {
-    this.setState({ isStatusShowing: check !== null })
+    this.setState({ isStatusShowing: check !== null, check })
   }
 
   public render() {
@@ -89,6 +91,7 @@ export class PullRequestBadge extends React.Component<
         disabled={!this.state.isStatusShowing}
         ariaHaspopup={true}
         ariaExpanded={this.props.showCIStatusPopover === true}
+        tooltip={getRefCheckSummary(this.state.check)}
       >
         <span className="number">#{this.props.number}</span>
         <CIStatus
@@ -100,4 +103,25 @@ export class PullRequestBadge extends React.Component<
       </Button>
     )
   }
+}
+
+/**
+ * Convert the combined check to an app-friendly string.
+ */
+function getRefCheckSummary(check: ICombinedRefCheck | null) {
+  if (check === null) {
+    return undefined
+  }
+
+  if (check.checks.length === 1) {
+    const { name, description } = check.checks[0]
+    return `${name}: ${description}`
+  }
+
+  const successCount = check.checks.reduce(
+    (acc, cur) => acc + (isSuccess(cur) ? 1 : 0),
+    0
+  )
+
+  return `${successCount}/${check.checks.length} checks OK`
 }
