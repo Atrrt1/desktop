@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.4.13-test1": [
+      "[New] To demonstrate thank you banner works on voiceover"
+    ],
     "3.4.13-beta1": [
       "[Fixed] Fix Branch List context menu showing pull request option when none exists - #19711. Thanks @DylanDevelops!",
       "[Fixed] The Thank You banner is announced by VoiceOver - #19734",
